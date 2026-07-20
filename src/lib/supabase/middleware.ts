@@ -6,18 +6,14 @@ export async function updateSession(request: NextRequest) {
     request,
   });
 
-  console.log("===== MIDDLEWARE SUPABASE DEBUG =====");
-  console.log("NEXT_PUBLIC_SUPABASE_URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
-  console.log("NEXT_PUBLIC_SUPABASE_ANON_KEY exists:", !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-
-  try {
-    console.log(
-      "Parsed URL:",
-      new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).toString()
-    );
-  } catch (err) {
-    console.error("MIDDLEWARE URL PARSE FAILED:", err);
-  }
+  console.log(
+    JSON.stringify({
+      tag: "MIDDLEWARE_SUPABASE_DEBUG",
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      nodeEnv: process.env.NODE_ENV,
+    })
+  );
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
