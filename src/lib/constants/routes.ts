@@ -1,0 +1,30 @@
+export const ROUTES = {
+  PUBLIC: {
+    HOME: '/',
+    ABOUT: '/about',
+    CONTACT: '/contact',
+    FAQ: '/faq',
+    HELP: '/help',
+    PRIVACY: '/privacy-policy',
+    TERMS: '/terms-and-conditions',
+    FIND_DONORS: '/find-donors',
+    REQUESTS: '/emergency-requests',
+    LOGIN: '/login',
+    REGISTER: '/register',
+  },
+  AUTH: {
+    DASHBOARD: '/dashboard',
+    PROFILE: '/profile',
+    BECOME_DONOR: '/become-donor',
+    MY_REQUESTS: '/my-requests',
+    NEW_REQUEST: '/request/new',
+    REQUEST_DETAIL: (id: string) => `/request/${id}`,
+    REQUEST_EDIT: (id: string) => `/request/${id}/edit`,
+  },
+  ADMIN: {
+    DASHBOARD: '/admin',
+    DONORS: '/admin/donors',
+    REQUESTS: '/admin/requests',
+    USERS: '/admin/users',
+  },
+} as const;

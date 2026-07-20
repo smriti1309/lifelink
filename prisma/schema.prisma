@@ -1,0 +1,199 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum BloodType {
+  A_PLUS
+  A_MINUS
+  B_PLUS
+  B_MINUS
+  AB_PLUS
+  AB_MINUS
+  O_PLUS
+  O_MINUS
+}
+
+enum DonorStatus {
+  AVAILABLE
+  TEMPORARILY_UNAVAILABLE
+}
+
+enum RequestUrgency {
+  IMMEDIATE
+  URGENT
+  NORMAL
+}
+
+enum RequestStatus {
+  ACTIVE
+  FULFILLED
+  CANCELLED
+  EXPIRED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum ContactPreference {
+  PHONE
+  EMAIL
+  BOTH
+}
+
+enum Relationship {
+  MOTHER
+  FATHER
+  BROTHER
+  SISTER
+  SPOUSE
+  FRIEND
+  OTHER
+}
+
+enum DonorRequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  FULFILLED
+  EXPIRED
+}
+
+enum DonationStatus {
+  PENDING
+  CONFIRMED
+}
+
+enum ReplacementRequirement {
+  SAME_BLOOD_GROUP
+  ANY_BLOOD_GROUP
+}
+
+model Profile {
+  id                String             @id @db.Uuid // Matches Supabase Auth user.id
+  email             String             @unique
+  fullName          String
+  phone             String?
+  district          String
+  state             String
+  role              Role               @default(USER)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  
+  donorProfile      DonorProfile?
+  emergencyRequests EmergencyRequest[] @relation("SeekerRequests")
+
+  @@map("profiles")
+}
+
+model DonorProfile {
+  id                       String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profileId                String            @unique @db.Uuid
+  bloodType                BloodType
+  dateOfBirth              DateTime
+  gender                   Gender
+  weight                   Float
+  preferredContact         ContactPreference
+  isHealthy                Boolean
+  hasMedicationRestriction Boolean
+  hadRecentSurgery         Boolean
+  donatedWithinLast3Months Boolean
+  isEligible               Boolean
+  emergencyContactName     String?
+  emergencyContactPhone    String?
+  emergencyContactRelation Relationship?
+  status                   DonorStatus       @default(AVAILABLE)
+  lastDonatedAt            DateTime?
+  totalDonations           Int               @default(0)
+  isVerified               Boolean           @default(false)
+  createdAt                DateTime          @default(now())
+  updatedAt                DateTime          @updatedAt
+
+  profile                  Profile           @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  donorRequests            DonorRequest[]
+
+  @@index([bloodType, status])
+  @@map("donor_profiles")
+}
+
+model Hospital {
+  id                String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name              String
+  district          String
+  state             String
+  address           String
+  isVerified        Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  emergencyRequests EmergencyRequest[]
+
+  @@index([district, state])
+  @@map("hospitals")
+}
+
+model EmergencyRequest {
+  id                     String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  seekerId               String         @db.Uuid
+  bloodType              BloodType
+  needsBloodUnits        Boolean        @default(true)
+  unitsRequired          Int            @default(1)
+  needsReplacementDonors Boolean        @default(false)
+  replacementDonorCount  Int?
+  replacementRequirement ReplacementRequirement?
+  hospitalId             String?        @db.Uuid
+  hospitalName           String?        // Manual entry input
+  urgency                RequestUrgency @default(NORMAL)
+  status                 RequestStatus  @default(ACTIVE)
+  contactPhone           String
+  notes                  String?        @db.Text
+  neededBy               DateTime
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+
+  patientName            String
+  patientAge             Int
+  patientGender          Gender
+  contactName            String
+  manualHospitalState    String?
+  manualHospitalDistrict String?
+  manualHospitalAddress  String?
+  seeker                 Profile        @relation("SeekerRequests", fields: [seekerId], references: [id], onDelete: Cascade)
+  hospital               Hospital?      @relation(fields: [hospitalId], references: [id], onDelete: SetNull)
+  donorRequests          DonorRequest[]
+
+  @@index([bloodType, status])
+  @@index([status])
+  @@index([createdAt])
+  @@index([urgency])
+  @@map("emergency_requests")
+}
+
+model DonorRequest {
+  id                 String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  emergencyRequestId String             @db.Uuid
+  donorProfileId     String             @db.Uuid
+  status             DonorRequestStatus @default(PENDING)
+  donationStatus     DonationStatus     @default(PENDING)
+  completedAt        DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  emergencyRequest   EmergencyRequest   @relation(fields: [emergencyRequestId], references: [id], onDelete: Cascade)
+  donorProfile       DonorProfile       @relation(fields: [donorProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([emergencyRequestId, donorProfileId])
+  @@index([donorProfileId, status])
+  @@map("donor_requests")
+}
