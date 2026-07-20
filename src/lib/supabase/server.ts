@@ -5,6 +5,17 @@ export async function createClient() {
   const { cookies } = await import('next/headers');
   const cookieStore = await cookies();
 
+  console.log("===== SUPABASE DEBUG =====");
+  console.log("NEXT_PUBLIC_SUPABASE_URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
+  console.log("NEXT_PUBLIC_SUPABASE_ANON_KEY exists:", !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
+  try {
+    const parsed = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!);
+    console.log("Parsed URL:", parsed.toString());
+  } catch (err) {
+    console.error("FAILED TO PARSE SUPABASE URL:", err);
+  }
+
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
