@@ -4,7 +4,15 @@ import { Pool } from 'pg';
 
 const prismaClientSingleton = () => {
   const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/lifelink';
-  const pool = new Pool({ connectionString });
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  const pool = new Pool({
+    connectionString,
+    ssl: connectionString.includes('sslmode=') || isProduction
+      ? { rejectUnauthorized: false }
+      : undefined,
+  });
+
   const adapter = new PrismaPg(pool);
   return new PrismaClient({ adapter });
 };

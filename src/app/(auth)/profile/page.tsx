@@ -12,7 +12,13 @@ export default async function ProfilePage() {
   }
 
   // 2. Load corresponding profile from Prisma database
-  const profile = await ProfileService.getProfile(user.id);
+  let profile = null;
+  try {
+    profile = await ProfileService.getProfile(user.id);
+  } catch (error) {
+    console.error('Error in ProfileService.getProfile:', error);
+    throw error;
+  }
 
   // 3. Structure data for form initialization
   const initialData = profile
